@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f7d46">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="माझी पेरू शेती">
+<link rel="manifest" href="manifest.webmanifest">
+<title>माझी पेरू शेती — Farm Manager v3</title>
+<style>
+:root{--bg:#f4f7f2;--card:#fff;--text:#17301d;--muted:#647168;--accent:#2f7d46;--accent2:#e7f2e9;--warn:#9a6a12;--warnbg:#fff7df;--danger:#b33a3a;--dangerbg:#fff0f0;--border:#d8e3da}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,"Noto Sans Devanagari",Arial,sans-serif;background:var(--bg);color:var(--text);padding-bottom:20px}
+header{background:linear-gradient(135deg,#1d5c32,#4d9659);color:#fff;padding:22px 16px 17px;position:sticky;top:0;z-index:5}
+header h1{margin:0 0 5px;font-size:23px}header p{margin:0;opacity:.92;font-size:12px}
+main{max-width:1150px;margin:auto;padding:9px}.tabs{display:flex;gap:7px;overflow:auto;margin:9px 0;position:sticky;top:82px;z-index:4;padding:3px 0}
+.tabs button{border:0;background:#fff;padding:10px 11px;border-radius:11px;font-weight:800;color:var(--text);white-space:nowrap;cursor:pointer;box-shadow:0 1px 5px #00000010}.tabs button.active{background:var(--accent);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:10px}.card{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:12px;box-shadow:0 2px 8px #18351c08;margin-bottom:10px}
+.kpi{font-size:27px;font-weight:900}.muted{color:var(--muted);font-size:13px}h2{font-size:18px;margin:3px 0 10px}h3{margin:3px 0 8px}
+label{display:block;font-size:13px;font-weight:800;margin:8px 0 4px}input,select,textarea{width:100%;padding:10px;border:1px solid #ccd8cf;border-radius:9px;background:#fff;font:inherit}
+button.primary,.btn{border:0;background:var(--accent);color:#fff;padding:10px 13px;border-radius:9px;font-weight:800;cursor:pointer}.btn.secondary{background:var(--accent2);color:var(--text)}.btn.warn{background:var(--warnbg);color:var(--warn)}.btn.danger{background:var(--dangerbg);color:var(--danger)}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.notice{padding:11px;border-left:4px solid var(--accent);background:var(--accent2);border-radius:8px;margin:8px 0}.alert{padding:11px;border-left:4px solid #c28c18;background:var(--warnbg);border-radius:8px;margin:8px 0}
+.task{display:flex;gap:9px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)}.task input{width:20px}.done{text-decoration:line-through;opacity:.55}.badge{display:inline-block;padding:4px 8px;border-radius:20px;background:var(--accent2);font-size:12px;font-weight:800}
+.progress{height:10px;background:#e4ebe5;border-radius:20px;overflow:hidden}.progress i{display:block;height:100%;background:var(--accent);width:0}.hidden{display:none}.small{font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--border)}th{background:#f0f5f0}.checkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:7px}.checkitem{display:flex;gap:8px;padding:10px;border:1px solid var(--border);border-radius:10px;background:#fbfdfb}.checkitem input{width:20px}
+.resultbox{padding:11px;border-radius:11px;background:#f7faf7;border:1px solid var(--border);margin-top:9px}.status{font-size:12px;font-weight:800;margin-top:7px}
+.photoGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:8px}.photo{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff}.photo img{width:100%;height:105px;object-fit:cover}.photo div{padding:6px;font-size:10px}.photo button{width:100%;border:0;padding:6px;background:var(--dangerbg);color:var(--danger);font-weight:800}
+.integration{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px;border:1px solid var(--border);border-radius:10px;margin:7px 0}.dot{width:10px;height:10px;border-radius:50%;background:#aaa;display:inline-block;margin-right:6px}.ok{background:#2f7d46}.warn{background:#c28c18}
+.filebox{border:2px dashed #b8c9bb;padding:12px;border-radius:12px;text-align:center;background:#fbfdfb}
+@media(max-width:600px){header h1{font-size:20px}.tabs{top:77px}table{font-size:11px}.card{padding:11px}}
+</style>
+</head>
+<body>
+<header><h1>🌳 माझी पेरू शेती — Farm Manager</h1><p>v3 • Offline Data • Photos • GPS • WhatsApp • Google Sheets Sync</p></header>
+<main>
+<div class="tabs">
+<button class="active" onclick="show('home',this)">🏠 आज</button>
+<button onclick="show('health',this)">🌱 आरोग्य</button>
+<button onclick="show('photos',this)">📷 फोटो</button>
+<button onclick="show('workers',this)">👨‍🌾 मजूर</button>
+<button onclick="show('farm',this)">🌳 शेत</button>
+<button onclick="show('records',this)">📋 नोंद</button>
+<button onclick="show('integrations',this)">🔗 Integration</button>
+</div>
+
+<section id="home">
+<div class="grid">
+<div class="card"><div class="muted">आज</div><div class="kpi" id="date"></div><div class="small">Target → Checking → Record</div></div>
+<div class="card"><div class="muted">पेरू</div><div class="kpi" id="plants">2550</div><div class="small">4–5 एकर</div></div>
+<div class="card"><div class="muted">आजचे Target</div><div class="kpi" id="doneCount">0%</div><div class="progress"><i id="bar"></i></div></div>
+</div>
+<div class="card"><h2>📌 आजची कामे</h2><div class="notice"><b>Rule:</b> प्रत्येक मजुराला Row / झाडे / स्पष्ट Target द्या.</div><div id="todayTasks"></div><div class="actions"><button class="btn secondary" onclick="addTask()">＋ काम</button><button class="btn" onclick="shareTodayWhatsApp()">📲 WhatsApp वर पाठवा</button></div></div>
+<div class="card"><h2>🔍 Quick Check</h2><div class="checkgrid" id="quickChecks"></div><div class="resultbox" id="quickResult">स्थिती: तपासणी बाकी</div></div>
+<div class="card"><h2>📍 आजचे GPS Location</h2><div id="gpsBox">Location नोंदलेली नाही.</div><div class="actions"><button class="primary" onclick="getGPS()">📍 GPS घ्या</button></div></div>
+</section>
+
+<section id="health" class="hidden">
+<div class="card"><h2>🌱 लहान / असमान पेरू झाडे — Decision Checklist</h2><div class="alert"><b>फोटोतील निरीक्षण:</b> काही झाडे इतरांपेक्षा लहान दिसतात. फोटोवरून एकच कारण निश्चित होत नाही; field checks करा.</div>
+<div class="checkgrid" id="healthChecks"></div><div class="actions"><button class="primary" onclick="diagnose()">✅ दिशा काढा</button><button class="btn secondary" onclick="clearHealth()">Reset</button></div><div id="diagnosis" class="resultbox">तपासणी केल्यावर परिणाम येथे दिसेल.</div></div>
+<div class="card"><h2>🟢 Weak Plant Tag</h2><div class="grid"><div><label>Block</label><select id="weakBlock"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option></select></div><div><label>Row</label><input id="weakRow" placeholder="18"></div><div><label>झाड क्रमांक</label><input id="weakPlant" placeholder="7"></div><div><label>लक्षण</label><select id="weakSymptom"><option>कमी वाढ</option><option>पानांचा रंग कमी</option><option>पाणी शंका</option><option>कीड/रोग शंका</option><option>नेमाटोड शंका</option><option>मूळ/ड्रेनेज शंका</option></select></div></div><div class="actions"><button class="primary" onclick="addWeak()">Weak Plant नोंदवा</button></div><div id="weakTable" style="margin-top:10px"></div></div>
+</section>
+
+<section id="photos" class="hidden">
+<div class="card"><h2>📷 फोटो नोंद</h2><div class="notice">फोटो + Block/Row + Plant No. + GPS + Notes एकत्र जतन करा.</div>
+<div class="grid"><div><label>प्रकार</label><select id="photoType"><option>कमजोर झाड</option><option>चांगली वाढ</option><option>कीड/रोग</option><option>नेमाटोड शंका</option><option>Drip</option><option>तूर</option><option>तण</option><option>संपूर्ण Block</option><option>इतर</option></select></div><div><label>Block / Row / Plant</label><input id="photoLocation" placeholder="B / Row 18 / Plant 7"></div></div>
+<label>टिपण</label><textarea id="photoNote" rows="2" placeholder="उदा. बाकी झाडांपेक्षा कमी वाढ"></textarea>
+<div class="filebox"><input id="photoInput" type="file" accept="image/*" capture="environment"><div class="small">Camera किंवा Gallery निवडा.</div></div>
+<div class="actions"><button class="primary" onclick="savePhoto()">फोटो Save करा</button><button class="btn secondary" onclick="getGPS('photo')">📍 Photo GPS</button></div><div class="status" id="photoStatus"></div></div>
+<div class="card"><h2>🖼️ Saved Photos</h2><div id="photoGallery" class="photoGrid"></div></div>
+</section>
+
+<section id="workers" class="hidden">
+<div class="card"><h2>👨‍🌾 मजूर</h2><div class="grid"><div><label>नाव</label><input id="wname" placeholder="रमेश"></div><div><label>मुख्य काम</label><input id="wrole" placeholder="तण नियंत्रण"></div></div><div class="actions"><button class="primary" onclick="addWorker()">मजूर जोडा</button></div><div id="workersTable" style="margin-top:10px"></div></div>
+</section>
+
+<section id="farm" class="hidden">
+<div class="grid"><div class="card"><h2>🌳 शेत माहिती</h2><label>क्षेत्र (एकर)</label><input id="acres" type="number" value="5"><label>पेरू झाडे</label><input id="plantInput" type="number" value="2550"><label>एका Row ची लांबी (मीटर)</label><input id="rowLen" type="number" value="100"><label>Rows</label><input id="rows" type="number" value="65"><button class="primary" style="margin-top:10px" onclick="saveFarm()">जतन करा</button></div>
+<div class="card"><h2>📍 Blocks</h2><div id="blocks"></div></div></div>
+<div class="card"><h2>💧 Irrigation</h2><div class="checkgrid"><label class="checkitem"><input type="checkbox">सर्व emitters</label><label class="checkitem"><input type="checkbox">Filter स्वच्छ</label><label class="checkitem"><input type="checkbox">Leak नाही</label><label class="checkitem"><input type="checkbox">लहान झाडांचे emitters तपासले</label><label class="checkitem"><input type="checkbox">पाणी साचत नाही</label></div></div>
+<div class="card"><h2>🌾 तूर Intercrop</h2><div class="checkgrid"><label class="checkitem"><input type="checkbox">जास्त सावली नाही</label><label class="checkitem"><input type="checkbox">पेरूभोवती तण कमी</label><label class="checkitem"><input type="checkbox">तूर कीड/रोग तपासला</label><label class="checkitem"><input type="checkbox">ड्रिप सुरक्षित</label></div></div>
+</section>
+
+<section id="records" class="hidden">
+<div class="card"><h2>📋 रोजची नोंद</h2><div class="grid"><div><label>मजूर</label><input id="rworker" placeholder="नाव"></div><div><label>काम / Row</label><input id="rwork" placeholder="Row 1–5 तण"></div><div><label>Target</label><input id="rtarget" placeholder="5 Rows"></div><div><label>पूर्ण</label><input id="ractual" placeholder="5 Rows"></div></div><div class="actions"><button class="primary" onclick="addRecord()">नोंद</button><button class="btn secondary" onclick="exportCSV()">CSV Export</button></div><div id="recordsTable" style="margin-top:10px"></div></div>
+</section>
+
+<section id="integrations" class="hidden">
+<div class="card"><h2>🔗 Integration Center</h2>
+<div class="notice"><b>फोनमध्ये data:</b> app storage मध्ये. <b>Cloud sync:</b> खाली Google Sheets Web App URL सेट केल्यावर records/tasks/weak plants sync करता येतील.</div>
+<div class="integration"><span>📲 WhatsApp</span><span><i class="dot ok"></i>Ready</span></div>
+<div class="integration"><span>📍 GPS</span><span><i class="dot ok"></i>Phone permission</span></div>
+<div class="integration"><span>☁️ Google Sheets</span><span id="sheetStatus"><i class="dot"></i>Not connected</span></div>
+<label>Google Apps Script Web App URL</label>
+<input id="sheetUrl" placeholder="https://script.google.com/macros/s/.../exec">
+<label>Farm ID / नाव</label><input id="farmId" value="GUAVA-01">
+<div class="actions"><button class="primary" onclick="saveIntegration()">जतन करा</button><button class="btn secondary" onclick="testSheet()">🔄 Test Sync</button><button class="btn" onclick="syncSheets()">☁️ Sync Data</button></div>
+<div id="syncMsg" class="status"></div>
+</div>
+<div class="card"><h2>💾 Backup / Restore</h2><div class="notice">फोन बदलताना Backup Export करा आणि नवीन फोनवर Restore करा.</div><div class="actions"><button class="primary" onclick="exportBackup()">⬇️ Full Backup</button><input id="importInput" type="file" accept="application/json" onchange="importBackup(event)"></div></div>
+<div class="card"><h2>🧩 Google Sheets Setup</h2><p class="small">1) Google Sheet उघडा → Extensions → Apps Script. 2) खालील sample backend code deploy as Web App करा. 3) मिळालेला /exec URL वर paste करा.</p><textarea rows="13" readonly>function doPost(e){
+  var body=JSON.parse(e.postData.contents);
+  var ss=SpreadsheetApp.openById('PUT_YOUR_SHEET_ID_HERE');
+  var sh=ss.getSheetByName('FarmData') || ss.insertSheet('FarmData');
+  sh.appendRow([new Date(), body.farmId, body.type, JSON.stringify(body.payload)]);
+  return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
+}
+function doGet(){
+  return ContentService.createTextOutput(JSON.stringify({ok:true,service:'Guava Farm Sync'})).setMimeType(ContentService.MimeType.JSON);
+}</textarea><div class="small">फोटो cloud मध्ये sync करण्यासाठी Drive upload backend वेगळा जोडता येतो; मोठे फोटो थेट Sheets मध्ये ठेवू नका.</div></div>
+</section>
+</main>
+
+<script>
+const DB='GuavaFarmDBv3';
+let data={workers:[],records:[],tasks:[],weak:[],farm:{acres:5,plants:2550,rowLen:100,rows:65},settings:{sheetUrl:'',farmId:'GUAVA-01'},gps:null};
+let photoGps=null;
+const today=()=>new Date().toISOString().slice(0,10);
+function dbOpen(){return new Promise((res,rej)=>{let r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{let d=r.result;if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta');if(!d.objectStoreNames.contains('photos'))d.createObjectStore('photos',{keyPath:'id'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function load(){let db=await dbOpen();return new Promise((res,rej)=>{let q=db.transaction('meta','readonly').objectStore('meta').get('data');q.onsuccess=()=>{if(q.result)data=q.result;if(!data.tasks.some(t=>t.date===today()))data.tasks=data.tasks.concat(defaultTasks());res()};q.onerror=()=>rej(q.error)})}
+async function save(){let db=await dbOpen();db.transaction('meta','readwrite').objectStore('meta').put(data,'data')}
+function defaultTasks(){return [['पेरू तण नियंत्रण','Row 1–5','मुख्य'],['पेरू तण नियंत्रण','Row 6–10','मुख्य'],['तूरची निगा','Tur Row 1–3','तूर'],['Drip तपासणी','Row 1–15','सिंचन'],['कमजोर/लहान झाडे तपासणे','50 झाडे','आरोग्य']].map((x,i)=>({id:Date.now()+i,date:today(),text:x[0],target:x[1],cat:x[2],done:false}))}
+function show(id,btn){document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');render()}
+function render(){
+ document.getElementById('date').textContent=new Date().toLocaleDateString('mr-IN',{day:'numeric',month:'short'});
+ document.getElementById('plants').textContent=data.farm.plants;
+ let ts=data.tasks.filter(t=>t.date===today()),d=ts.filter(t=>t.done).length,p=ts.length?Math.round(d/ts.length*100):0;doneCount.textContent=p+'%';bar.style.width=p+'%';
+ todayTasks.innerHTML=ts.map(t=>`<div class="task"><input type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id})"><div class="${t.done?'done':''}"><b>${t.text}</b><br><span class="badge">${t.target}</span> <span class="muted">${t.cat}</span></div></div>`).join('');
+ workersTable.innerHTML=data.workers.length?`<table><tr><th>नाव</th><th>काम</th><th></th></tr>${data.workers.map((w,i)=>`<tr><td>${w.name}</td><td>${w.role}</td><td><button class="btn danger" onclick="delWorker(${i})">काढा</button></td></tr>`).join('')}</table>`:'<p class="muted">मजूर नाहीत.</p>';
+ recordsTable.innerHTML=data.records.length?`<table><tr><th>तारीख</th><th>मजूर</th><th>काम</th><th>Target</th><th>पूर्ण</th></tr>${data.records.slice().reverse().map(r=>`<tr><td>${r.date}</td><td>${r.worker}</td><td>${r.work}</td><td>${r.target}</td><td>${r.actual}</td></tr>`).join('')}</table>`:'<p class="muted">नोंद नाही.</p>';
+ acres.value=data.farm.acres;plantInput.value=data.farm.plants;rowLen.value=data.farm.rowLen;rows.value=data.farm.rows;
+ let n=Number(data.farm.rows),s=Math.ceil(n/5);blocks.innerHTML=Array.from({length:5},(_,i)=>{let a=i*s+1,b=Math.min(n,(i+1)*s);return `<div class="task"><b>Block ${String.fromCharCode(65+i)}</b><span>Row ${a}–${b}</span></div>`}).join('');
+ weakTable.innerHTML=data.weak.length?`<table><tr><th>Block/Row/Plant</th><th>लक्षण</th><th>तारीख</th></tr>${data.weak.slice().reverse().map(w=>`<tr><td>${w.block}/${w.row}/${w.plant}</td><td>${w.symptom}</td><td>${w.date}</td></tr>`).join('')}</table>`:'<p class="muted">Weak plants नाहीत.</p>';
+ sheetUrl.value=data.settings?.sheetUrl||'';farmId.value=data.settings?.farmId||'GUAVA-01';
+ if(data.gps)gpsBox.innerHTML=`✅ ${data.gps.lat.toFixed(6)}, ${data.gps.lng.toFixed(6)}<br><span class="small">${data.gps.time}</span>`;
+ renderPhotos();
+}
+function toggleTask(id){let t=data.tasks.find(x=>x.id===id);if(t)t.done=!t.done;save().then(render)}
+function addTask(){let text=prompt('काम:','पेरू तण नियंत्रण');if(!text)return;let target=prompt('Target / Row:','Row 11–15');if(!target)return;data.tasks.push({id:Date.now(),date:today(),text,target,cat:'स्वतःचे',done:false});save().then(render)}
+function resetToday(){data.tasks=data.tasks.filter(t=>t.date!==today()).concat(defaultTasks());save().then(render)}
+function addWorker(){let n=wname.value.trim();if(!n)return alert('नाव भरा.');data.workers.push({name:n,role:wrole.value.trim()||'सामान्य'});wname.value='';wrole.value='';save().then(render)}
+function delWorker(i){data.workers.splice(i,1);save().then(render)}
+function addRecord(){if(!rworker.value.trim()||!rwork.value.trim())return alert('मजूर आणि काम भरा.');data.records.push({date:today(),worker:rworker.value.trim(),work:rwork.value.trim(),target:rtarget.value.trim(),actual:ractual.value.trim()});rworker.value=rwork.value=rtarget.value=ractual.value='';save().then(render)}
+function saveFarm(){data.farm={acres:+acres.value||5,plants:+plantInput.value||2550,rowLen:+rowLen.value||100,rows:+rows.value||65};save().then(render);alert('जतन झाले.')}
+const qn=['💧 Drip','🌿 तण','🌾 तूर','🐛 कीड/रोग','🪱 नेमाटोड शंका','🌱 कमजोर झाडे'];quickChecks.innerHTML=qn.map(x=>`<label class="checkitem"><input type="checkbox" onchange="quickUpdate()"> ${x} तपासले</label>`).join('');
+function quickUpdate(){let a=[...quickChecks.querySelectorAll('input')],c=a.filter(x=>x.checked).length;quickResult.textContent=`स्थिती: ${c}/${a.length} तपासणी पूर्ण`}
+const hn=['Drip emitter कमी/बंद','झाडाभोवती तण जास्त','तूरची स्पर्धा/सावली','माती खूप कोरडी','मातीमध्ये पाणी साचते','मुळांवर गाठी/मूळ कमी','पानांचा रंग फिका','पाने वाकणे/डाग','कीड दिसते','झाड सुरुवातीपासून कमजोर'];healthChecks.innerHTML=hn.map((x,i)=>`<label class="checkitem"><input type="checkbox" id="hc${i}"> ${x}</label>`).join('');
+function diagnose(){let s=hn.map((_,i)=>document.getElementById('hc'+i).checked),o=[];if(s[0])o.push('💧 Drip emitter/filter/pressure तपासा.');if(s[1])o.push('🌿 तणामुळे competition कमी करा.');if(s[2])o.push('🌾 तूरची सावली/स्पर्धा तपासा.');if(s[3])o.push('💦 irrigation uniformity तपासा.');if(s[4])o.push('🚰 drainage/root-zone तपासा.');if(s[5])o.push('🪱 root/soil test करून नेमाटोडची खात्री करा.');if(s[6])o.push('🧪 nutrition आणि root health दोन्ही तपासा.');if(s[7]||s[8])o.push('🐛 फोटो-नोंद घेऊन कीड/रोगाचे targeted निरीक्षण करा.');if(s[9])o.push('🌱 Weak Plant Tag करा आणि वेगळे follow-up करा.');if(!o.length)o.push('3–5 लहान झाडे निवडून समान पद्धतीने तपासा.');diagnosis.innerHTML=o.map(x=>`<div class="notice">${x}</div>`).join('')}
+function clearHealth(){hn.forEach((_,i)=>document.getElementById('hc'+i).checked=false);diagnosis.textContent='तपासणी बाकी.'}
+function addWeak(){if(!weakRow.value.trim()||!weakPlant.value.trim())return alert('Row आणि झाड क्रमांक भरा.');data.weak.push({date:today(),block:weakBlock.value,row:weakRow.value.trim(),plant:weakPlant.value.trim(),symptom:weakSymptom.value,gps:photoGps});weakRow.value='';weakPlant.value='';save().then(render)}
+function getGPS(mode){if(!navigator.geolocation)return alert('या फोन/browser मध्ये GPS उपलब्ध नाही.');navigator.geolocation.getCurrentPosition(pos=>{let g={lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy,time:new Date().toLocaleString('mr-IN')};if(mode==='photo')photoGps=g;else{data.gps=g;save()}alert(`GPS मिळाले: ${g.lat.toFixed(6)}, ${g.lng.toFixed(6)}`);render()},err=>alert('GPS permission द्या किंवा Location ON करा.'),{enableHighAccuracy:true,timeout:10000,maximumAge:0})}
+async function savePhoto(){let f=photoInput.files[0];if(!f)return alert('फोटो निवडा.');if(f.size>8*1024*1024)return alert('फोटो 8 MB पेक्षा कमी ठेवा.');let id=Date.now()+'_'+Math.random().toString(16).slice(2),db=await dbOpen(),tx=db.transaction('photos','readwrite');tx.objectStore('photos').put({id,date:today(),type:photoType.value,location:photoLocation.value.trim(),note:photoNote.value.trim(),gps:photoGps,blob:f});tx.oncomplete=()=>{photoInput.value='';photoNote.value='';photoStatus.textContent='✅ फोटो फोनमध्ये जतन झाला.';photoGps=null;renderPhotos()}}
+async function photosAll(){let db=await dbOpen();return new Promise((res,rej)=>{let q=db.transaction('photos','readonly').objectStore('photos').getAll();q.onsuccess=()=>res(q.result.sort((a,b)=>b.id.localeCompare(a.id)));q.onerror=()=>rej(q.error)})}
+async function renderPhotos(){if(!photoGallery)return;let ps=await photosAll();if(!ps.length){photoGallery.innerHTML='<p class="muted">अजून फोटो नाहीत.</p>';return}photoGallery.innerHTML=ps.map(p=>{let u=URL.createObjectURL(p.blob);return `<div class="photo"><img src="${u}"><div><b>${p.type}</b><br>${p.location||''}<br>${p.note||''}<br>${p.date}</div><button onclick="deletePhoto('${p.id}')">🗑️ Delete</button></div>`}).join('')}
+async function deletePhoto(id){if(!confirm('Delete?'))return;let db=await dbOpen();let tx=db.transaction('photos','readwrite');tx.objectStore('photos').delete(id);tx.oncomplete=renderPhotos}
+function shareTodayWhatsApp(){let ts=data.tasks.filter(t=>t.date===today()),msg='🌳 माझी पेरू शेती\\n📅 '+new Date().toLocaleDateString('mr-IN')+'\\n\\n'+ts.map((t,i)=>`${i+1}. ${t.text} — ${t.target} ${t.done?'✅':'⏳'}`).join('\\n');window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank')}
+function saveIntegration(){data.settings={sheetUrl:sheetUrl.value.trim(),farmId:farmId.value.trim()||'GUAVA-01'};save().then(()=>syncMsg.textContent='✅ Integration settings जतन झाले.')}
+async function testSheet(){let u=sheetUrl.value.trim();if(!u)return alert('Google Apps Script Web App URL भरा.');try{let r=await fetch(u);let j=await r.json();syncMsg.textContent=j.ok?'✅ Google Sheet endpoint connected.':'⚠️ Endpoint response मिळाला.';sheetStatus.innerHTML='<i class="dot ok"></i>Connected'}catch(e){syncMsg.textContent='❌ Connection failed: '+e.message;sheetStatus.innerHTML='<i class="dot warn"></i>Check URL/Deployment'}}
+async function syncSheets(){let u=sheetUrl.value.trim();if(!u)return alert('पहिले URL save करा.');let payload={farmId:farmId.value.trim()||'GUAVA-01',type:'farm_bundle',payload:{farm:data.farm,workers:data.workers,records:data.records,tasks:data.tasks,weak:data.weak,gps:data.gps,exportedAt:new Date().toISOString()}};try{let r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});let j=await r.json();syncMsg.textContent=j.ok?'✅ Data sync झाला.':'⚠️ Server response आला.';sheetStatus.innerHTML='<i class="dot ok"></i>Synced'}catch(e){syncMsg.textContent='❌ Sync failed: '+e.message;alert('Google Web App मध्ये “Anyone” access/Deploy settings तपासा.')}}
+function exportCSV(){let rows=[['तारीख','मजूर','काम','Target','पूर्ण'],...data.records.map(r=>[r.date,r.worker,r.work,r.target,r.actual])];let csv=rows.map(r=>r.map(x=>`"${String(x).replaceAll('"','""')}"`).join(',')).join('\\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='guava-farm-records.csv';a.click()}
+async function exportBackup(){let ps=await photosAll(),payload={version:3,exportedAt:new Date().toISOString(),data,photos:await Promise.all(ps.map(async p=>({id:p.id,date:p.date,type:p.type,location:p.location,note:p.note,gps:p.gps,dataURL:await blobToDataURL(p.blob)})))};let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(payload)],{type:'application/json'}));a.download='guava-farm-backup-'+today()+'.json';a.click()}
+function blobToDataURL(b){return new Promise((res,rej)=>{let r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(b)})}
+function dataURLtoBlob(u){let a=u.split(','),m=a[0].match(/:(.*?);/)[1],b=atob(a[1]),n=b.length,ar=new Uint8Array(n);while(n--)ar[n]=b.charCodeAt(n);return new Blob([ar],{type:m})}
+async function importBackup(e){let f=e.target.files[0];if(!f)return;try{let p=JSON.parse(await f.text());if(!p.data)throw Error('invalid');data=p.data;await save();if(p.photos?.length){let db=await dbOpen(),tx=db.transaction('photos','readwrite'),s=tx.objectStore('photos');p.photos.forEach(x=>s.put({id:x.id,date:x.date,type:x.type,location:x.location,note:x.note,gps:x.gps,blob:dataURLtoBlob(x.dataURL)}))}alert('✅ Restore पूर्ण.');e.target.value='';render()}catch(err){alert('Backup file चुकीची आहे.')}}
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+load().then(render);
+</script>
+</body>
+</html>
