@@ -1,113 +1,201 @@
 /**
- * माझी पेरू शेती — Google Apps Script Cloud Sync
+ * माझी पेरू शेती — Google Apps Script Cloud Sync V5
  *
- * 1. Google Sheet उघडा → Extensions → Apps Script
- * 2. हा पूर्ण code Code.gs मध्ये paste करा.
- * 3. Deploy → New deployment → Web app
- *    Execute as: Me
- *    Who has access: Anyone
- * 4. Web App URL website मध्ये टाका.
+ * Google Sheet ID:
+ * 1hFKAwIBdwZvGx-It8-qZjz1N4FheYNhjy4UFi5iOmOQ
  *
- * Sheet मध्ये एक sheet "FarmData" आपोआप तयार होईल.
+ * Sheet:
+ * FarmData
+ *
+ * Deployment:
+ * Execute as: Me
+ * Who has access: Anyone
  */
 
+const SHEET_ID = '1hFKAwIBdwZvGx-It8-qZjz1N4FheYNhjy4UFi5iOmOQ';
 const SHEET_NAME = 'FarmData';
 
 function getSheet_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.openById(SHEET_ID);
   let sh = ss.getSheetByName(SHEET_NAME);
+
   if (!sh) {
     sh = ss.insertSheet(SHEET_NAME);
-    sh.getRange(1,1,1,4).setValues([['FarmID','UpdatedAt','JSON','UpdatedBy']]);
+    sh.getRange(1, 1, 1, 4).setValues([
+      ['FarmID', 'UpdatedAt', 'JSON', 'UpdatedBy']
+    ]);
     sh.setFrozenRows(1);
+    sh.getRange(1, 1, 1, 4).setFontWeight('bold');
   }
+
   return sh;
 }
 
-function json_(obj) {
+function jsonResponse_(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-function doGet(e) {
-  return json_({ok:true, service:'Majhi Peru Sheti Cloud Sync', message:'POST API ready'});
+function doGet() {
+  try {
+    const sh = getSheet_();
+    return jsonResponse_({
+      ok: true,
+      service: 'Majhi Peru Sheti Cloud Sync',
+      version: 'V5',
+      sheet: sh.getName(),
+      message: 'Cloud Sync API is working'
+    });
+  } catch (err) {
+    return jsonResponse_({
+      ok: false,
+      error: String(err.message || err)
+    });
+  }
 }
 
 function doPost(e) {
   try {
+    if (!e || !e.postData || !e.postData.contents) {
+      throw new Error('POST data not received');
+    }
+
     const body = JSON.parse(e.postData.contents || '{}');
-    const action = body.action;
+    const action = String(body.action || '').trim();
     const farmId = String(body.farmId || 'MY-GUAVA-FARM').trim();
-    if (!farmId) throw new Error('Farm ID required');
+
+    if (!farmId) {
+      throw new Error('Farm ID required');
+    }
 
     const sh = getSheet_();
-    const last = sh.getLastRow();
+    const lastRow = sh.getLastRow();
 
+    // LOAD
     if (action === 'load') {
-      if (last < 2) return json_({ok:true, data:null, updatedAt:0});
-      const values = sh.getRange(2,1,last-1,4).getValues();
-      for (let i=0; i<values.length; i++) {
-        if (String(values[i][0]) === farmId) {
+      if (lastRow < 2) {
+        return jsonResponse_({
+          ok: true,
+          data: null,
+          updatedAt: 0,
+          farmId: farmId
+        });
+      }
+
+      const values = sh.getRange(2, 1, lastRow - 1, 4).getValues();
+
+      for (let i = 0; i < values.length; i++) {
+        if (String(values[i][0]).trim() === farmId) {
           let data = null;
-          try { data = JSON.parse(values[i][2]); } catch (_) {}
-          return json_({
-            ok:true,
-            data:data,
-            updatedAt:Number(values[i][1]) || 0
+          try {
+            data = JSON.parse(values[i][2]);
+          } catch (_) {
+            data = null;
+          }
+
+          return jsonResponse_({
+            ok: true,
+            data: data,
+            updatedAt: Number(values[i][1]) || 0,
+            farmId: farmId,
+            conflict: false
           });
         }
       }
-      return json_({ok:true, data:null, updatedAt:0});
+
+      return jsonResponse_({
+        ok: true,
+        data: null,
+        updatedAt: 0,
+        farmId: farmId
+      });
     }
 
+    // SAVE
     if (action === 'save') {
       const incomingTime = Number(body.updatedAt || Date.now());
       const incomingData = body.data;
-      if (!incomingData) throw new Error('Data missing');
 
-      let row = -1;
+      if (!incomingData || typeof incomingData !== 'object') {
+        throw new Error('Farm data missing');
+      }
+
+      let existingRow = -1;
       let existingTime = 0;
 
-      if (last >= 2) {
-        const ids = sh.getRange(2,1,last-1,1).getValues();
-        const times = sh.getRange(2,2,last-1,1).getValues();
-        for (let i=0; i<ids.length; i++) {
-          if (String(ids[i][0]) === farmId) {
-            row = i + 2;
-            existingTime = Number(times[i][0]) || 0;
+      if (lastRow >= 2) {
+        const values = sh.getRange(2, 1, lastRow - 1, 2).getValues();
+
+        for (let i = 0; i < values.length; i++) {
+          if (String(values[i][0]).trim() === farmId) {
+            existingRow = i + 2;
+            existingTime = Number(values[i][1]) || 0;
             break;
           }
         }
       }
 
-      // Last-write-wins protection: an older device cannot overwrite newer cloud data.
-      if (existingTime > incomingTime) {
-        const oldJson = sh.getRange(row,3).getValue();
-        let oldData = null;
-        try { oldData = JSON.parse(oldJson); } catch (_) {}
-        return json_({
-          ok:true,
-          data:oldData,
-          updatedAt:existingTime,
-          conflict:true,
-          message:'Cloud data was newer; newer cloud copy returned.'
+      // Prevent an older device from overwriting newer cloud data.
+      if (existingRow !== -1 && existingTime > incomingTime) {
+        let cloudData = null;
+
+        try {
+          cloudData = JSON.parse(
+            sh.getRange(existingRow, 3).getValue()
+          );
+        } catch (_) {
+          cloudData = null;
+        }
+
+        return jsonResponse_({
+          ok: true,
+          data: cloudData,
+          updatedAt: existingTime,
+          farmId: farmId,
+          conflict: true,
+          message: 'Cloud data is newer. Cloud copy returned.'
         });
       }
 
-      const now = Math.max(incomingTime, Date.now());
-      const rowValues = [[farmId, now, JSON.stringify(incomingData), Session.getActiveUser().getEmail() || 'web-app']];
-      if (row === -1) {
-        sh.getRange(last+1,1,1,4).setValues(rowValues);
-      } else {
-        sh.getRange(row,1,1,4).setValues(rowValues);
+      const saveTime = Math.max(incomingTime, Date.now());
+
+      let userEmail = 'web-app';
+      try {
+        userEmail = Session.getActiveUser().getEmail() || 'web-app';
+      } catch (_) {
+        userEmail = 'web-app';
       }
 
-      return json_({ok:true, data:incomingData, updatedAt:now, conflict:false});
+      const rowData = [[
+        farmId,
+        saveTime,
+        JSON.stringify(incomingData),
+        userEmail
+      ]];
+
+      if (existingRow === -1) {
+        sh.getRange(lastRow + 1, 1, 1, 4).setValues(rowData);
+      } else {
+        sh.getRange(existingRow, 1, 1, 4).setValues(rowData);
+      }
+
+      return jsonResponse_({
+        ok: true,
+        data: incomingData,
+        updatedAt: saveTime,
+        farmId: farmId,
+        conflict: false,
+        message: 'Farm data saved successfully'
+      });
     }
 
-    throw new Error('Unknown action');
+    throw new Error('Unknown action: ' + action);
+
   } catch (err) {
-    return json_({ok:false, error:String(err.message || err)});
+    return jsonResponse_({
+      ok: false,
+      error: String(err.message || err)
+    });
   }
 }
