@@ -1,50 +1,113 @@
-// माझी पेरू शेती — Google Apps Script backend
-const SHEET_ID = 'PUT_YOUR_GOOGLE_SHEET_ID_HERE';
+/**
+ * माझी पेरू शेती — Google Apps Script Cloud Sync
+ *
+ * 1. Google Sheet उघडा → Extensions → Apps Script
+ * 2. हा पूर्ण code Code.gs मध्ये paste करा.
+ * 3. Deploy → New deployment → Web app
+ *    Execute as: Me
+ *    Who has access: Anyone
+ * 4. Web App URL website मध्ये टाका.
+ *
+ * Sheet मध्ये एक sheet "FarmData" आपोआप तयार होईल.
+ */
 
-function doGet() {
-  return ContentService.createTextOutput(JSON.stringify({
-    ok: true,
-    service: 'Guava Farm Sync v4'
-  })).setMimeType(ContentService.MimeType.JSON);
+const SHEET_NAME = 'FarmData';
+
+function getSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(SHEET_NAME);
+  if (!sh) {
+    sh = ss.insertSheet(SHEET_NAME);
+    sh.getRange(1,1,1,4).setValues([['FarmID','UpdatedAt','JSON','UpdatedBy']]);
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+
+function json_(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  return json_({ok:true, service:'Majhi Peru Sheti Cloud Sync', message:'POST API ready'});
 }
 
 function doPost(e) {
   try {
-    if (!e || !e.postData || !e.postData.contents) {
-      throw new Error('No POST data received');
+    const body = JSON.parse(e.postData.contents || '{}');
+    const action = body.action;
+    const farmId = String(body.farmId || 'MY-GUAVA-FARM').trim();
+    if (!farmId) throw new Error('Farm ID required');
+
+    const sh = getSheet_();
+    const last = sh.getLastRow();
+
+    if (action === 'load') {
+      if (last < 2) return json_({ok:true, data:null, updatedAt:0});
+      const values = sh.getRange(2,1,last-1,4).getValues();
+      for (let i=0; i<values.length; i++) {
+        if (String(values[i][0]) === farmId) {
+          let data = null;
+          try { data = JSON.parse(values[i][2]); } catch (_) {}
+          return json_({
+            ok:true,
+            data:data,
+            updatedAt:Number(values[i][1]) || 0
+          });
+        }
+      }
+      return json_({ok:true, data:null, updatedAt:0});
     }
-    const body = JSON.parse(e.postData.contents);
-    const ss = SpreadsheetApp.openById(SHEET_ID);
-    ensureHeader(ss, 'SyncLog', ['Date','Farm ID','Type','Payload']);
-    ss.getSheetByName('SyncLog').appendRow([
-      new Date(), body.farmId || '', body.type || '', JSON.stringify(body.payload || {})
-    ]);
-    if (body.type === 'farm_bundle') {
-      writeObjects(ss, 'Labour', body.payload?.records || []);
-      writeObjects(ss, 'Workers', body.payload?.workers || []);
-      writeObjects(ss, 'Tasks', body.payload?.tasks || []);
-      writeObjects(ss, 'PlantHealth', body.payload?.weak || []);
+
+    if (action === 'save') {
+      const incomingTime = Number(body.updatedAt || Date.now());
+      const incomingData = body.data;
+      if (!incomingData) throw new Error('Data missing');
+
+      let row = -1;
+      let existingTime = 0;
+
+      if (last >= 2) {
+        const ids = sh.getRange(2,1,last-1,1).getValues();
+        const times = sh.getRange(2,2,last-1,1).getValues();
+        for (let i=0; i<ids.length; i++) {
+          if (String(ids[i][0]) === farmId) {
+            row = i + 2;
+            existingTime = Number(times[i][0]) || 0;
+            break;
+          }
+        }
+      }
+
+      // Last-write-wins protection: an older device cannot overwrite newer cloud data.
+      if (existingTime > incomingTime) {
+        const oldJson = sh.getRange(row,3).getValue();
+        let oldData = null;
+        try { oldData = JSON.parse(oldJson); } catch (_) {}
+        return json_({
+          ok:true,
+          data:oldData,
+          updatedAt:existingTime,
+          conflict:true,
+          message:'Cloud data was newer; newer cloud copy returned.'
+        });
+      }
+
+      const now = Math.max(incomingTime, Date.now());
+      const rowValues = [[farmId, now, JSON.stringify(incomingData), Session.getActiveUser().getEmail() || 'web-app']];
+      if (row === -1) {
+        sh.getRange(last+1,1,1,4).setValues(rowValues);
+      } else {
+        sh.getRange(row,1,1,4).setValues(rowValues);
+      }
+
+      return json_({ok:true, data:incomingData, updatedAt:now, conflict:false});
     }
-    return json({ok:true, message:'Data saved successfully'});
+
+    throw new Error('Unknown action');
   } catch (err) {
-    return json({ok:false, error:String(err)});
+    return json_({ok:false, error:String(err.message || err)});
   }
-}
-
-function ensureHeader(ss, name, headers) {
-  let sh = ss.getSheetByName(name) || ss.insertSheet(name);
-  if (sh.getLastRow() === 0) sh.appendRow(headers);
-}
-
-function writeObjects(ss, name, arr) {
-  if (!Array.isArray(arr) || arr.length === 0) return;
-  const headers = Object.keys(arr[0]);
-  ensureHeader(ss, name, headers);
-  const sh = ss.getSheetByName(name);
-  arr.forEach(obj => sh.appendRow(headers.map(h => obj[h] ?? '')));
-}
-
-function json(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
 }
