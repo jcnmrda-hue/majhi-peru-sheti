@@ -1,12 +1,12 @@
-# माझी पेरू शेती — Mobile Farm Manager v3
+माझी पेरू शेती — Integrated Final v4
 
-नवीन Integration:
-- WhatsApp share
-- Phone GPS tagging
-- Google Sheets Web App sync (configurable)
-- CSV export
-- Full JSON backup/restore
-- Offline/local phone storage
-- Camera/gallery photo capture + notes + GPS
+1) index.html + manifest.webmanifest + sw.js हे GitHub Pages मध्ये upload करा.
+2) Code.gs Google Sheet -> Extensions -> Apps Script मध्ये paste करा.
+3) SHEET_ID मध्ये Google Sheet चा ID टाका.
+4) Deploy -> New deployment -> Web app.
+5) Execute as: Me; Who has access: Anyone.
+6) तयार झालेला /exec URL Mobile App -> Integration मध्ये टाका.
+7) Save -> Test Sync -> Sync Data.
 
-Google Sheets sync साठी HTTPS hosting आवश्यक आहे आणि Apps Script Web App endpoint वापरावा.
+Google Sheet tabs: SyncLog, Labour, Workers, Tasks, PlantHealth.
+Photos फोनमध्ये local ठेवले जातात. Cloud photo upload नंतर Google Drive endpoint ने जोडणे चांगले.
